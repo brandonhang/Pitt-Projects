@@ -1,1 +1,1 @@
-
+This project simulates a store selling and receiving produce by demonstrating stack data types.  Specially formatted text files instruct the program to sell, display, advance days, etc.  It was originally submitted on 10/14/2015.  Some copyrighted files have been omitted from the repository.

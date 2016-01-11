@@ -1,0 +1,322 @@
+<- - - - - - - - - - - - - - - -DISPLAY WIDTH- - - - - - - - - - - - - - - - >
+  **To ensure proper viewing, please make sure your text editor/viewer is at
+    least 78 characters wide (the width of the arrows above).
+
+
+
+   ________            ___         __           ______          __         
+  /_  __/ /_  ___     /   | __  __/ /_____     / ____/___  ____/ /__  _____
+   / / / __ \/ _ \   / /| |/ / / / __/ __ \   / /   / __ \/ __  / _ \/ ___/
+  / / / / / /  __/  / ___ / /_/ / /_/ /_/ /  / /___/ /_/ / /_/ /  __/ /    
+ /_/ /_/ /_/\___/  /_/  |_\__,_/\__/\____/   \____/\____/\__,_/\___/_/                                                  
+        ___     __  __________  ____  ___             _         __ 
+       / _ |   /  |/  /  _/ _ \/ __/ / _ \_______    (_)__ ____/ /_
+      / __ |  / /|_/ // // ___/\ \  / ___/ __/ _ \  / / -_) __/ __/
+     /_/ |_| /_/  /_/___/_/  /___/ /_/  /_/  \___/_/ /\__/\__/\__/ 
+                                                |___/              
+
+  __________________________________________________________________________
+ /                                                                          \
+|                        Brandon Hang                                        |
+|                        bsh41@pitt.edu                                      |
+|                        CS 0447                                             |
+|                        Project 1 - The Auto Coder                          |
+|                        Version 1.00                                        |
+ \__________________________________________________________________________/
+
+
+O============================================================================O
+|                             Table of Contents                              |
+O============================================================================O
+
+  **Use CTRL+F and the codes listed in the brackets to jump directly to a 
+    specific section.
+
+
+     1. Algorithm Outline.........................................[AC010]
+     2. Known Issues..............................................[AC020]
+     3. Register Table............................................[AC030]
+     4. Function Map..............................................[AC040]
+     5. Algorithm Details.........................................[AC050]
+          a. Read an Integer......................................[AC05A]
+          b. Build the Word.......................................[AC05B]
+          c. Display the Instruction..............................[AC05C]
+          d. Machine Code Display.................................[AC05D]
+
+
+   ___ 
+  / _ | uto Coder  /=========================================================O
+ / __ | ----------<                   1. Algorithm Outline                   |
+/_/ |_|  [AC010]   \=========================================================O
+
+
+     The basic algorithm of my Auto Coder is built around building a 4-byte
+word containing information for displaying both the instructions and the
+machine code.  This is achieved in several key steps:
+
+     1. Read an integer from the user in the range 1-9 where 1=add, 2=addi,
+        3=or, 4=ori, 5=lw, 6=sw, 7=j, 8=beq, and 9=bne.
+
+     2. Build and store the word by supplying the proper registers and
+        immediates.
+
+     3. After entering 5 inputs, display the instructions using the proper
+        formatting, labels, register names, etc.
+
+     4. Display the machine code in hexadecimal format without using syscall
+        34.
+
+
+   ___ 
+  / _ | uto Coder  /=========================================================O
+ / __ | ----------<                   2. Known Issues                        |
+/_/ |_|  [AC020]   \=========================================================O
+
+
+     This program is able to handle when the first instruction is a jump or
+branch operation (j, beq, bne).  This results in the instruction jumping or
+branching to itself.
+
+          E.g. L100: bne $t1, $t0, L100
+
+However, the only known issue occurs when the first instruction is a jump or
+branch instruction and is subsequently followed by a jump or branch
+instruction.  This results in 2 labels being printed in the first line of
+displayed instructions.
+
+          E.g. L100:   L101:   j L100
+                       beq $t1, $t0, L101
+
+The only solution to this behavior I could think of is to reuse the immediate
+of the first instruction as the immediate of the second instruction.  Then,
+the second instruction could bypass creating a label for the first one as it
+already exists.
+
+          E.g. L100:   j L100
+               L101:   beq $t1, $t0, L100
+                       bne $t2, $t1, L101
+
+However, this breaks the rules established in the project requirements as the
+immediate must be incremented once it is used.  As such, this is not a valid
+solution to this issue.
+
+
+   ___ 
+  / _ | uto Coder  /=========================================================O
+ / __ | ----------<                   3. Register Table                      |
+/_/ |_|  [AC030]   \=========================================================O
+
+
+     $t0     general use register for loading and comparing bytes
+     $t1     secondary register for comparing bytes
+     $t2     register for creating machine codes to print
+     $t3     register used with $t2 in appending a target address
+     $t4     holds the ordinal numbers address
+     $t5     internal counter used when building machine code
+     $t6     internal counter used when printing hexadecimal code
+     $t7     not used
+     $t8     internal counter used when building instruction words
+     $t9     internal counter used when printing instructions
+
+     $s0     holds the input memory address
+     $s1     holds the temporary memory address; later holds machine code
+     $s2     used to transfer words from temporary to input memory
+     $s3     stores a word for later restoration when building labels
+     $s4     holds the register address for instruction printing
+     $s5     holds the opcodes address for instruction printing
+     $s6     holds the newline address for printing a newline
+     $s7     holds the comma address for printing ", "
+
+     $k0     immediate counter; initially set to 100
+     $k1     last register used counter; initially set to 1
+
+
+   ___ 
+  / _ | uto Coder  /=========================================================O
+ / __ | ----------<                   4. Function Map                        |
+/_/ |_|  [AC040]   \=========================================================O
+
+
+                               Main
+                                ↓
+                           Input_Loop <--------------------------------
+                               ↓                                      |
+     _________________________/ \__________________________           ↑
+    ↓      |      ↓       |      ↓      |     ↓      |     ↓          |
+Build_Add  |  Build_Addi  |  Build_Beq  |  Build_J   |  Build_Sw      |
+    ↓      ↓      ↓       ↓      ↓      ↓     ↓      ↓     ↓          |
+    |   Build_Or  |   Build_Ori  |  Build_Bne |   Build_Lw |          |
+     \    |        \      ↓       \    |     /       ↓     |          |
+      ↓   ↓         \    /         ↓   ↓    ↓        |     |          ↑
+     R_Type          \  /        Insert_Label        |     |          |
+        ↓             \/            |    ↓           |     ↓          |
+        |             ↓↓            |   Skip_1       |     |          |
+        |            I_Type         |    ↓           ↓     |          |
+        |            ↓   ↑          |   Skip_2       |     |          |
+        |           /    |__________|____/           |     |          ↑
+        |       ___/   (beq, bne)  /                 |     ↓          |
+        ↓      ↓                  /                  |     |          |
+      Input_Return <-------------/ (j)               ↓     |          |
+          ↓   ↑ ↑____________________________________|     |          |
+          |   |____________________________________________|          |
+          |                                                           ↑
+          |___________________________________________________________|
+                                     ↓         (before 5 iterations)
+                                     |
+                          (after 5   |
+                         iterations) |
+                                     ↓
+                                 Print_Prep
+                                     ↓
+                                   Print <============================-------
+                                     ↓                                \     |
+    ________________________________/ \___________________________    |     ↑
+   ↓       |     ↓        |     ↓      |     ↓       |     ↓      |   |     |
+Print_Add  |  Print_Addi  |  Print_Lw  |  Print_Beq  |  Print_J   |   |     |
+   ↓       ↓     ↓        ↓     ↓      ↓     ↓       ↓     ↓      ↓   ↑     |
+   |   Print_Or  |   Print_Ori  |  Print_Sw  |  Print_Bne  |  Print_Label   |
+   ↓       ↓      \    |        ↓   ↓        |       |     |                ↑
+ Print_R_Type      ↓   ↓       Print_W       ↓       ↓     |                |
+      ↓         Print_I_Type     ↓          Print_Branch   |                |
+       \              |          |              ↓          ↓                |
+        \             ↓          ↓             /           |                |
+         \---------> Print_Register <---------/            |                ↑
+                   (Reg_t0 - Reg_t9)                       |                |
+                            ↓                              ↓                |
+                         Output                            |                |
+                            ↓                              \                |
+                            |_______________________________>------>--------↑
+                                 ↓                   (before 5 iterations)
+                                 |
+                      (after 5   |
+                     iterations) |
+                                 ↓
+                            Machine_Prep
+                                 ↓
+                            Machine_Print <---------------------------------\
+                                 ↓                                           \
+                            Machine_Loop <----------------------\            |
+                                  ↓                              \ (label    |
+     ____________________________/ \_____________________________/  found)   ↑
+    ↓           |        ↓      |      ↓       |       ↓       |             |
+Machine_R_Type  |   Machine_Ori |  Machine_Sw  |  Machine_Bne  |             |
+    ↓           ↓        ↓      ↓      ↓       ↓       ↓       ↓             |
+    |      Machine_Addi  |  Machine_Lw |  Machine_Beq  |   Machine_J         |
+    |           |        |       \     /       ↓       ↓       |             ↑
+    |           ↓        ↓        ↓   ↓     Mach_I_Branch  ____|_____        |
+    |         Machine_I_Type     Mach_W      ↓            ↓    |     ↓       |
+    |                  |            ↓        /        Load_0  / \ Load_3     |
+    |                  ↓            /       /         ↓      ↓   ↓     ↓     |
+    |---------------> Find_Reg <====-------/          | Load_1  Load_2 |     ↑
+                 (Hex_t0 - Hex_t9)                    |    ↓       ↓   |     |
+                    ↓     ↓    ↓                      |    |       |   |     |
+    Mach_Or <-------|     |     \                     ↓    |       |   ↓     |
+ (M. R_Type,              ↓      \               _____|____|_______|___|     |
+ as necessary)    Special_B_Case  \             ↓                            ↑
+       ↓          (M. I_Branch,    |            |                            |
+       |           as necessary)   |            |                            |
+       |                  ↓        |            |                            |
+       |                  \        \            ↓                            |
+       |___________________>--------=====> Hex_Prep <-----------             ↑
+                                               ↓               |             |
+                                           Print_Hex           |             |
+                                    (Print_0x00 - Print_0x0f)  |             |
+                                               ↓               |             |
+                                           Print_Hex           |             ↑
+                                    (Print_0x00 - Print_0x0f)  |             |
+                                               ↓               ↑             |
+                                               |_______________|             |
+                                                 \    (before 4              |
+                                       (after 4   |     iterations)          ↑
+                                      iterations) |                          |
+                                                  ↓                          |
+                                             Machine_Return                  |
+                                                   ↓                         |
+                                                  / \________________________↑
+                 Quit <--------------------------/    (before 5 iterations)
+                          (after 5 iterations)
+
+
+   ___ 
+  / _ | uto Coder  /=========================================================O
+ / __ | ----------<                   5. Algorithm Details                   |
+/_/ |_|  [AC050]   \=========================================================O
+
+
+             /---------------------------------------------------\
+            <                 5a. Read an Integer        [AC01A]  >
+             \---------------------------------------------------/
+
+     Steps 1 and 2 are done simultaneously in a loop.  First, MIPS will read
+an integer from the user using syscall 5.  This number is then stored in a
+register and compared against integers in the range 1-9 where each specific
+integer represents a different MIPS function.  When the two numbers match,
+the program will branch to the correct function to build a 4-byte word
+containing instruction details.  For example, a user-entered integer of 8
+will branch to the Build_Beq function in order to build a branch if equal
+instruction.  I also implemented code that causes the program to quit if an
+invalid integer is entered (e.g. 18).
+
+
+             /---------------------------------------------------\
+            <                 5b. Build The Word         [AC01B]  >
+             \---------------------------------------------------/
+
+     Once the correct branching sequence is called, the program will build a
+4-byte word that encompasses the instruction information.  Several internal
+counters are used to ensure the correct registers and immediates are used. The
+register $k0 is set to 100 and keeps track of the immediate value.  The
+register $k1 keeps track of the last destination register.  The program then
+stores the function, registers, and the immediate (if used) as integers in
+the 4-byte word.  Both $k0 and $k1 will increment whenever they are used.  The
+finished 4-byte word is then stored in memory.
+
+          E.g. addi function:
+                    - Store integer 2 as byte 1 (addi)
+                    - Store integer 2 as byte 2 (destination register $t1)
+                    - Store integer 1 as byte 3 (source register $t0)
+                    - Store integer 64 as byte 4 (immediate, 0x64 = 100d)
+                    - Save the word (0x64010202) in the next available spot in
+                      the allocated memory
+
+
+             /---------------------------------------------------\
+            <            5c. Display the Instructions    [AC01C]  >
+             \---------------------------------------------------/
+
+     Once the loop completes 5 iterations, the instructions are read from
+memory one word at a time.  It does this by loading the next word into a
+register and loading the first byte from it.  Like in the first step, it
+compares this byte with integers ranging from 1-9 to determine which function
+to print.  Depending on the function that needs to print, the program will
+print out the associated registers and the immediate (if used).  A special
+case exists should the integer be 88 (0x58).  This will instruct the program
+to print out a label for branch and jump instructions.
+
+          E.g. 0x02010303
+                    - Byte 1 is 0x03, prints the or function
+                    - Byte 2 is 0x03, prints out $t2 (destination register)
+                    - Byte 3 is 0x01, prints out $t0 (source register 1)
+                    - Byte 4 is 0x02, prints out $t1 (source register 2)
+               or $t0, $t1, $t2
+
+
+          E.g. 0x00006758
+                    - Byte 1 is 0x58, prints out a label
+                    - Byte 2 is 0x67, prints out the immediate (0x67 = 103d)
+               L103:
+
+             /---------------------------------------------------\
+            <              5d. Machine Code Display      [AC01D]  >
+             \---------------------------------------------------/
+
+     Once the instructions are displayed, those same 4-byte words are used to
+generate and display the machine code.  It does this by loading the first byte
+of the next word and comparing it with integers ranging from 1-9 to determine
+what machine code to generate.  It then generates machine code using the same
+byte reading algorithm; hexadecimal opcodes, register codes, etc. are then
+generated and shifted left logically until the complete code is assembled. The
+finished hexadecimal code is then displayed in the console.  Due to syscall 34
+being explicitly forbidden, each nybble in the word is read and compared to
+values ranging from 1-9 and a-f.  It then prints out the correct character
+using syscall 11.

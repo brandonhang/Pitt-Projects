@@ -1,0 +1,206 @@
+<- - - - - - - - - - - - - - - -DISPLAY WIDTH- - - - - - - - - - - - - - - - >
+  **To ensure proper viewing, please make sure your text editor/viewer is at
+    least 78 characters wide (the width of the arrows above).
+
+
+
+         ,---._                     ____          ,-.----.
+       .-- -.' \                  ,'  , `.   ,---,\    /  \    .--.--.
+       |    |   :              ,-+-,.' _ |,`--.' ||   :    \  /  /    '.
+       :    ;   |  __  ,-.  ,-+-. ;   , |||   :  :|   |  .\ :|  :  /`. /
+       :        |,' ,'/ /| ,--.'|'   |  ;|:   |  '.   :  |: |;  |  |--`
+       |    :   :'  | |' ||   |  ,', |  ':|   :  ||   |   \ :|  :  ;_
+       :         |  |   ,'|   | /  | |  ||'   '  ;|   : .   / \  \    `.
+       |    ;   |'  :  /  '   | :  | :  |,|   |  |;   | |`-'   `----.   \
+   ___ l         |  | '   ;   . |  ; |--' '   :  ;|   | ;      __ \  \  |
+ /    /\    J   :;  : |   |   : |  | ,    |   |  ':   ' |     /  /`--'  /
+/  ../  `..-    ,|  , ;   |   : '  |/     '   :  |:   : :    '--'.     /
+\    \         ;  ---'    ;   | |`-'      ;   |.' |   | :      `--'---'
+ \    \      ,'           |   ;/          '---'   `---'.|
+  "---....--'             '---'                     `---`
+  _____                         _    _          __            _     _
+ |  _  |___ _ _ _ ___ ___ ___ _| |  | |_ _ _   |  |   ___ ___|_|___|_|_____
+ |   __| . | | | | -_|  _| -_| . |  | . | | |  |  |__| . | . | |_ -| |     |
+ |__|  |___|_____|___|_| |___|___|  |___|_  |  |_____|___|_  |_|___|_|_|_|_|
+                                       |___|            |___|              
+
+  __________________________________________________________________________
+ /                                                                          \
+|                        Brandon Hang                                        |
+|                        bsh41@pitt.edu                                      |
+|                        CS 0447                                             |
+|                        Project 2 - JrMIPS                                  |
+|                        Version 2.538                                       |
+ \__________________________________________________________________________/
+
+
+O============================================================================O
+|                             Table of Contents                              |
+O============================================================================O
+
+  **Use CTRL+F and the codes listed in the brackets to jump directly to a 
+    specific section.
+
+     1. Design Process............................................[JM010]
+     2. Known Issues..............................................[JM020]
+     3. Component Breakdown.......................................[JM030]
+          a. Main.................................................[JM03A]
+          b. Instructions.........................................[JM03B]
+          c. Decoder..............................................[JM03C]
+          d. Control Signals......................................[JM03D]
+
+
+     __
+ __ / /___  MIPS   /=========================================================O
+/ // / __/ -------<                   1. Design Process                      |
+\___/_/    [JM010] \=========================================================O
+
+
+  **Images can be viewed online but are also located in the archived file.
+
+     The goal of my project was to break everything down into smaller parts.
+I built the ALU without any issues and I even managed to make a rudimentary
+component that controlled branch outputs.  However, things went seriously
+south when I tried to implement a decoder to control the ALU and branch
+components; I think I attempted to do too many things at once instead of
+sticking with the principle of breaking the problem into smaller parts.
+
+Image 1 - http://i.imgur.com/GjqBoXA.jpg
+
+     I ended up scrapping this early version entirely and starting over with
+the ALU as the only carry over.  I also referenced Dr. Zhang's notes and the
+book regarding the simplified/abstract diagram of a single-cycle CPU.  From
+there I created new components to handle each type of instruction (the ALU,
+branch/jump, word operations, and system operations).  I also made a decoder
+that generates a number of control bits instead of trying to directly
+manipulate each of the instruction operator components.  This resulted in a
+fully functional, but quite ugly, single-cycle CPU.
+
+Image 2 - http://i.imgur.com/NNNyZM7.jpg
+
+     I finalized its appearance by creating container subcircuits that housed
+different components into a unified structure; a ALU container (named the
+Ultra ALU as a tongue-in-cheek reference NOT to create a super ALU) and a
+decoder container.
+
+Image 3 - http://i.imgur.com/DXtBOaS.jpg
+
+Here is a map of how all the components interact with each other.
+
+Image 4 - http://i.imgur.com/YChdW6J.jpg (large image)
+
+
+     __
+ __ / /___  MIPS   /=========================================================O
+/ // / __/ -------<                   2. Known Issues                        |
+\___/_/    [JM020] \=========================================================O
+
+
+     As far as I know, there are no known issues with the CPU.  That said,
+there are most likely redundant or over-engineered components present in the
+CPU.  However, I kept the status quo as I would rather sacrifice optimization
+for functionality.
+
+
+     __
+ __ / /___  MIPS   /=========================================================O
+/ // / __/ -------<                   3. Component Breakdown                 |
+\___/_/    [JM030] \=========================================================O
+
+
+             /---------------------------------------------------\
+            <                     3a. Main               [JM03A]  >
+             \---------------------------------------------------/
+
+     Main contains a number of visible components: the clock, the PC counter,
+ROM, RAM, the decoder container, the ALU container, and a LED display.  This
+was made in an attempt to appear as close to the simplified view of a single
+cycle CPU as discussed in class.
+
+Image 5 - http://i.imgur.com/1s4IHqd.jpg
+
+     The clock controls the PC counter, components in both the decoder and ALU
+containers, and RAM.  The PC counter controls what instruction is read from
+ROM.  The decoder container determines which operation to use in the ALU
+container.  The ALU container outputs data to be sent back to register memory
+or RAM.  A multiplexer helps control this output.
+
+
+             /---------------------------------------------------\
+            <                   3b. Operations           [JM03B]  >
+             \---------------------------------------------------/
+
+     The operations are separated into 4 categories: arithmetic and logical
+operations, branch jump operations, word operations, and system operations.
+Each of these are housed in separate subcircuits and are controlled by signals
+sent from the decoder container (more on that later).
+
+     The ALU is able to read two 16-bit strings and a 4-bit shift amount.  A
+3-bit opcode determines which operation to use in order to output a 16-bit
+string.
+
+     The branch unit reads two 16-bit strings, an 8-bit immediate (unsigned),
+and the PC address.  A 3-bit opcode determines what PC address to output and
+also if a 16-bit string needs to be outputted as well.
+
+     The word unit reads two 16-bit strings in order to manipulate RAM found
+in Main.  It also outputs control signals enable either the load or store
+function of RAM.  It is controlled by a 1-bit opcode and a 2-bit enabler.
+
+     The system unit reads and outputs a 16-bit string for the LED display.
+It is controlled by a 1-bit opcode and a 2-bit enabler.  Additionally, clock
+input is used to update the LED display when the "put" instruction is called.
+This is done through a register found within the component.  The register
+stores and sends a 16-bit string but only when enabled.  The clock signal then
+updates the LED display to whatever the register holds.
+
+
+             /---------------------------------------------------\
+            <                    3c. Decoder             [JM03C]  >
+             \---------------------------------------------------/
+
+     The decoder takes the instruction gathered from ROM and outputs control
+signals and various data to be used.  The 16-bit instruction is first sent to
+the Fetch subcircuit.  Fetch takes register numbers from the instruction and
+sends it to the Register subcircuit to output 16-bit register data.  It also
+sends a 4-bit shift amount, an unsigned 8-bit immediate to be used directly,
+and an 8-bit immediate that is extended into 16-bits.  A multiplexer
+controlled by Fetch determines whether the 16-bit string from the $rt register
+or the extended 16-bit string is used.  Fetch also isolates the 4-bit shift
+amount from the immediate.
+
+     Fetch also outputs a 2-bit type code that is sent to a subcircuit named
+Decoder (I know, poor naming convention).  This Decoder outputs various 3 and
+2-bit opcodes to be used by the ALU container.  It also outputs a CPU enable
+signal that allows the CPU to continue fetching instructions.  Only the "halt"
+instruction will disable the CPU.  Decoder also sends the subop bit to the
+sign-extender subcircuit.  Only used when "addi" or "addui" is called, the
+subop bit controls if the 8-bit immediate is sign-extended or zero-extended to
+a 16-bit string.
+
+
+             /---------------------------------------------------\
+            <                 3d. Control Signals        [JM03D]  >
+             \---------------------------------------------------/
+
+               .---------------.-------------------.----------.
+               |  Instruction  | Control Component |  Opcode  |
+               '---------------+-------------------+----------'
+               |     add       |     ALU_Ctrl      |   000    |
+               |     sub       |     ALU_Ctrl      |   001    |
+               |     addi      |     ALU_Ctrl      |   000    |
+               |     addui     |     ALU_Ctrl      |   000    |
+               |     and       |     ALU_Ctrl      |   010    |
+               |     nor       |     ALU_Ctrl      |   011    |
+               |     sll       |     ALU_Ctrl      |   100    |
+               |     srl       |     ALU_Ctrl      |   101    |
+               |     bx        |     Br_Ctrl       |   000    |
+               |     bz        |     Br_Ctrl       |   001    |
+               |     jr        |     Br_Ctrl       |   010    |
+               |     jal       |     Br_Ctrl       |   011    |
+               |     j         |     Br_Ctrl       |   100    |
+               |     lw        |     Word_Ctrl     |   0      |
+               |     sw        |     Word_Ctrl     |   1      |
+               |     put       |     Sys_Ctrl      |   0      |
+               |     halt      |     Sys_Ctrl      |   1      |
+               '---------------'-------------------'----------'
