@@ -1,9 +1,8 @@
 #CS 1632 - Deliverable 2
 
-__Brandon S. Hang__
+###**Brandon S. Hang**
 
-###Quick Stats
-
+__Quick Stats__
 -  63 JUnit Test Cases
 -  96.4% Code Coverage
 -  Lots of mocked objects
