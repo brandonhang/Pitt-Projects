@@ -1,0 +1,1 @@
+This project enables the tagging of music files with the ID3 v1.1 standard (specifically mp3's although ogg's were tested as well).  The program can both read and write tags and display them to the console.  This project was originally submitted on 02/09/2016.
