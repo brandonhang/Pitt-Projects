@@ -1,0 +1,41 @@
+================ Compiling Instructions ================
+
+
+------------ How to Compile the JUnit Tests ------------
+
+JUnit tests REQUIRE the Eclipse IDE:
+	1. Copy or clone the "coffee_hunter_pro" and
+	   "coffee_maker_junit_tests" folders from GitHub.
+	
+	2. Create a new project in Eclipse and load the
+	   folders into the project.
+	
+	3. JUnit test cases are located in the
+	   "coffee_maker_junit_tests" folder/package.
+	
+	4. Run each JUnit test case individually or run the
+	   entire test plan by right-clicking the package in
+	   Eclipse and selecting "Run As" -> "JUnit Test".
+
+
+
+------- How to Compile the CoffeeMakerQuest Game -------
+
+If using the Eclipse IDE:
+	1. Copy or clone the "coffee_hunter_pro" folder
+	   (if you did not run compile the JUnit tests
+	   first) into a new project in Eclipse.
+	
+	2. Run "CoffeeMakerQuest.java" by opening the Java
+	   file and selecting "Run" -> "Run" in the menu
+	   bar (or by using the shortcut Ctrl + F11 on PC or
+	   Command + F11 on Mac).
+
+If using Command Prompt or Terminal:
+	1. Copy or clone the "coffee_hunter_pro" to your
+	   computer.
+	
+	2. Open each of the Java files and remove the line
+	   "package coffee_hunter_pro;".  Save each file.
+	   
+	3. Compile "CoffeeMakerQuest.java".
