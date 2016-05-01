@@ -1,3 +1,6 @@
+This deliverable tests the website "nasioc.com" using Selenium and behavior-driven development.  Listed are a number of
+user stories implemented in the web tests.  This deliverable was originally submitted on 03/03/2016.
+
 ##User Story 1
 As a NASIOC member<br>
 I want to log in<br>
