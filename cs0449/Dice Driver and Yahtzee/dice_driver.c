@@ -50,7 +50,7 @@ static ssize_t dice_read(struct file *file, char *dice_buffer,
 	
 	*ppos += count;				// Updates the offset provided by the program
 	
-	return *ppos;			// Returns the offset pointer
+	return count;			// Returns the count
 }
 
 

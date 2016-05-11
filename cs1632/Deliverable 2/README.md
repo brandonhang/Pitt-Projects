@@ -1,3 +1,6 @@
+This deliverable serves as an introduction to unit tests by recreating an existing program titled "Coffee Maker Quest."
+This deliverable was originally submitted on 02/16/2016.
+
 #CS 1632 - Deliverable 2
 
 ###**Brandon S. Hang**
